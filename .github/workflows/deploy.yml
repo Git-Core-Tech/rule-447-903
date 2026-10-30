@@ -21,6 +21,8 @@ jobs:
       RULE_NAME: ${{ github.event.repository.name }}
       ORG: ${{ github.repository_owner }}
       SERVER_IP: ${{ vars.SERVER_IP || '10.10.80.18' }}
+      # Branch or tag of tazama-lf/rule-executer the image is built from
+      RULE_EXECUTER_REF: ${{ vars.RULE_EXECUTER_REF || 'dev' }}
 
     steps:
       # Step 1: Checkout repository
@@ -37,7 +39,7 @@ jobs:
       - name: Clone Rule Executer Repo
         run: |
           echo "Cloning Rule Executer repo and removing package-lock.json file..."
-          git clone https://github.com/tazama-lf/rule-executer -b dev
+          git clone https://github.com/tazama-lf/rule-executer -b "$RULE_EXECUTER_REF"
           cd rule-executer 
           rm -f package-lock.json
           cd ..
@@ -183,6 +185,13 @@ jobs:
           -e EVENT_HISTORY_DATABASE_USER=postgres \
           -e EVENT_HISTORY_DATABASE_PASSWORD=unused \
           -e EVENT_HISTORY_DATABASE_CERT_PATH=/usr/local/share/ca-certificates/ca-certificates.crt \
+          -e ENRICHMENT_ENABLED=true \
+          -e ENRICHMENT_DATABASE=enrichment \
+          -e ENRICHMENT_DATABASE_HOST=$SERVER_IP \
+          -e ENRICHMENT_DATABASE_PORT=15432 \
+          -e ENRICHMENT_DATABASE_USER=postgres \
+          -e ENRICHMENT_DATABASE_PASSWORD=unused \
+          -e ENRICHMENT_DATABASE_CERT_PATH=/usr/local/share/ca-certificates/ca-certificates.crt \
           -e STARTUP_TYPE=nats \
           -e SERVER_URL=$SERVER_IP:14222 \
           -e PRODUCER_STREAM= \
